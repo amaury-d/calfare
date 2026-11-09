@@ -1,0 +1,8 @@
+"meeting.fallbackTitle" = "Meeting";
+"countdown.starts" = "Your meeting is starting";
+"countdown.now" = "It's time!";
+"countdown.in" = "Starts in %1$d:%2$02d";
+"button.joinTeams" = "Join Teams";
+"button.close" = "Close";
+"preview.title" = "Calflare preview";
+"preview.details" = "This is a synthetic preview event.";
