@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.calflare.agent</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>AGENT_PATH</string>
+  </array>
+  <key>AbandonProcessGroup</key>
+  <true/>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>20</integer>
+  <key>StandardOutPath</key>
+  <string>STDOUT_PATH</string>
+  <key>StandardErrorPath</key>
+  <string>STDERR_PATH</string>
+</dict>
+</plist>

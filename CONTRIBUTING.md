@@ -7,19 +7,14 @@ for automated tests.
 ## Local checks
 
 ```sh
-swift test
-swift build -c release
-for script in build.sh install.sh uninstall.sh scripts/*.sh; do
-  zsh -n "$script" || exit 1
-done
-./scripts/check-packaging.sh
+make check
 ```
 
-The packaging check builds an ad-hoc-signed app, moves it to a path containing
-spaces and `&`, and checks its plist, signature, and localized resources. It
-does not launch a GUI or load a LaunchAgent. For a manual synthetic preview,
-run `./build.sh` and then
-`build/Calflare.app/Contents/MacOS/CalflareAgent --test`.
+This runs the tests, builds an ad-hoc-signed app, and checks its property
+lists, localized resources, and signature without Calendar access or a GUI.
+`App/` contains the bundle metadata, translations, and LaunchAgent template.
+Run `make preview` for a synthetic full-screen alert. `make clean` removes
+the Swift build cache and `build/Calflare.app`, not other files in `build/`.
 
 Before a public release, confirm the copyright attribution in `LICENSE` and
 review the manual Calendar-permission and multi-display behavior on supported

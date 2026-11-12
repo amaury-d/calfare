@@ -3,7 +3,7 @@ import Combine
 import SwiftUI
 
 struct AlertOptions {
-    var title = NSLocalizedString("meeting.fallbackTitle", bundle: .module, comment: "")
+    var title = NSLocalizedString("meeting.fallbackTitle", comment: "")
     var details = ""
     var joinURL: URL?
     var start: Date?
@@ -12,8 +12,8 @@ struct AlertOptions {
     static func parse(_ arguments: [String]) -> AlertOptions {
         var options = AlertOptions()
         if arguments.contains("--preview") {
-            options.title = NSLocalizedString("preview.title", bundle: .module, comment: "")
-            options.details = NSLocalizedString("preview.details", bundle: .module, comment: "")
+            options.title = NSLocalizedString("preview.title", comment: "")
+            options.details = NSLocalizedString("preview.details", comment: "")
             options.joinURL = URL(string: "https://teams.microsoft.com/")
             options.start = Date().addingTimeInterval(60)
             return options
@@ -62,13 +62,13 @@ struct AlertView: View {
 
     private var countdown: String {
         guard let start = options.start else {
-            return NSLocalizedString("countdown.starts", bundle: .module, comment: "")
+            return NSLocalizedString("countdown.starts", comment: "")
         }
         let seconds = Int(start.timeIntervalSince(now).rounded())
         if seconds <= 0 {
-            return NSLocalizedString("countdown.now", bundle: .module, comment: "")
+            return NSLocalizedString("countdown.now", comment: "")
         }
-        let format = NSLocalizedString("countdown.in", bundle: .module, comment: "")
+        let format = NSLocalizedString("countdown.in", comment: "")
         return String(format: format, locale: Locale.current, seconds / 60, seconds % 60)
     }
 
@@ -133,7 +133,7 @@ struct AlertView: View {
                             close()
                         } label: {
                             Label(
-                                NSLocalizedString("button.joinTeams", bundle: .module, comment: ""),
+                                NSLocalizedString("button.joinTeams", comment: ""),
                                 systemImage: "video.fill"
                             )
                         }
@@ -141,7 +141,7 @@ struct AlertView: View {
                         .keyboardShortcut(.defaultAction)
                     }
                     Button(
-                        NSLocalizedString("button.close", bundle: .module, comment: ""),
+                        NSLocalizedString("button.close", comment: ""),
                         action: close
                     )
                         .buttonStyle(PillButtonStyle(prominent: options.joinURL == nil))
@@ -171,15 +171,6 @@ struct MeetingAlert {
 
     @MainActor
     static func main() {
-        if CommandLine.arguments.contains("--check-resources") {
-            for key in [
-                "meeting.fallbackTitle", "countdown.in", "button.joinTeams",
-                "button.close", "preview.title", "preview.details"
-            ] {
-                print(Bundle.module.localizedString(forKey: key, value: nil, table: nil))
-            }
-            return
-        }
         let options = AlertOptions.parse(CommandLine.arguments)
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)

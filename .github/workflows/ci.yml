@@ -6,17 +6,8 @@ on:
 
 jobs:
   macos:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test core behavior
-        run: swift test
-      - name: Build release executables
-        run: swift build -c release
-      - name: Check shell syntax
-        run: |
-          for script in build.sh install.sh uninstall.sh scripts/*.sh; do
-            zsh -n "$script" || exit 1
-          done
-      - name: Check app packaging
-        run: ./scripts/check-packaging.sh
+      - name: Test and check app
+        run: make check

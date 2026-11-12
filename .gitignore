@@ -1,6 +1,4 @@
 .DS_Store
-.swift-build/
 .build/
 .test-fixtures/
-.packaging-check/
 build/

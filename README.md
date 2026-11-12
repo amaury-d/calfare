@@ -15,46 +15,26 @@ visible to macOS Calendar.
 ## Build and install from source
 
 ```sh
-./build.sh
-./install.sh
+make install
 ```
 
-`build.sh` builds and ad-hoc signs a self-contained `Calflare.app` in
-`build/`; it does not read calendars, request permission, show a window, or
-load a service. Pass `--output "/path/with spaces & symbols/Calflare.app"` to
-choose another build destination. The built app keeps its overlay executable
-and English/French resources together, so it can be moved independently of
-the checkout.
+Use `make` or `make app` to build and ad-hoc sign a self-contained
+`build/Calflare.app` without accessing calendars, showing a window, or loading
+a service. The app includes its overlay executable and English/French
+resources, so it can be moved independently of the checkout.
 
-`install.sh` builds the app and installs it at `~/Applications/Calflare.app`,
-then loads a per-user LaunchAgent that checks every 20 seconds. On first use,
-allow Calflare to access Calendars in System Settings > Privacy & Security >
-Calendars. Renaming the app requires consent again. Ad-hoc signing is intended
-for local source builds and does not guarantee that macOS will retain
-permission after a rebuild.
-
-### Migrating the legacy Outlook Meeting Alert
-
-The installer detects the old `com.local.outlook-meeting-alert` service and
-refuses to replace it unless migration is explicit:
-
-```sh
-./install.sh --migrate
-```
-
-Migration builds and validates Calflare before stopping the old service,
-copies its seven-day deduplication state if Calflare has no state yet, and
-removes the old LaunchAgent only after the new service loads successfully.
-The old checkout and its `build/` artifacts are not removed. If service
-loading fails, the installer attempts to restore the previous service; check
-the terminal output and, if necessary, restore the legacy plist from
-`~/Library/LaunchAgents/com.local.outlook-meeting-alert.plist` and load it with
-`launchctl bootstrap gui/$(id -u) <plist-path>`. Calendar consent may need to
-be granted again.
+`make install` builds the app, installs it at `~/Applications/Calflare.app`,
+and loads a per-user LaunchAgent that checks every 20 seconds. To choose a
+different application directory, use `make install INSTALL_DIR="/path/to/apps"`;
+use the same directory for uninstallation. On first use, allow Calflare to
+access Calendars in System Settings > Privacy & Security > Calendars. Ad-hoc
+signing is intended for local source builds and does not guarantee that macOS
+will retain permission after a rebuild.
 
 ## Preview and calendar selection
 
 ```sh
+make preview
 "$HOME/Applications/Calflare.app/Contents/MacOS/CalflareAgent" --test
 "$HOME/Applications/Calflare.app/Contents/MacOS/CalflareAgent" --list-calendars
 "$HOME/Applications/Calflare.app/Contents/MacOS/CalflareAgent" --list
@@ -107,15 +87,16 @@ activates the Teams button in an alert.
 
 If calendars are missing, confirm the account exposes calendars to macOS
 Calendar and that Calflare has Calendar permission. The account need not be
-Exchange specifically. Check the LaunchAgent output at
-`~/Library/Logs/Calflare/`; use `--list-calendars` to see the calendars
-EventKit exposes. If a configured calendar identifier is unavailable, list
-calendars again and update `config.json`.
+Exchange specifically. Run `make logs` to follow the LaunchAgent output, or
+inspect the files in `~/Library/Logs/Calflare/`. These files grow over time;
+they may be removed when no longer needed. Use `--list-calendars` to see the
+calendars EventKit exposes. If a configured calendar identifier is
+unavailable, list calendars again and update `config.json`.
 
 ## Uninstallation
 
 ```sh
-./uninstall.sh
+make uninstall
 ```
 
 This stops and removes only Calflare's LaunchAgent and installed app.
@@ -126,9 +107,6 @@ To remove those data files as well, do so explicitly after uninstalling:
 rm -rf "$HOME/Library/Application Support/Calflare"
 rm -rf "$HOME/Library/Logs/Calflare"
 ```
-
-The legacy Outlook Meeting Alert service, if present, is not removed by
-Calflare's uninstaller.
 
 ## Development and license
 

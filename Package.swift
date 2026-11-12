@@ -3,7 +3,6 @@ import PackageDescription
 
 let package = Package(
     name: "Calflare",
-    defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "CalflareCore", targets: ["CalflareCore"]),
@@ -14,14 +13,10 @@ let package = Package(
         .target(name: "CalflareCore"),
         .executableTarget(
             name: "CalflareAgent",
-            dependencies: ["CalflareCore"],
-            path: "Sources/CalflareAgent",
-            exclude: ["Info.plist", "Resources"]
+            dependencies: ["CalflareCore"]
         ),
         .executableTarget(
-            name: "CalflareOverlay",
-            path: "Sources/CalflareOverlay",
-            resources: [.process("Resources")]
+            name: "CalflareOverlay"
         ),
         .testTarget(name: "CalflareCoreTests", dependencies: ["CalflareCore"])
     ]
