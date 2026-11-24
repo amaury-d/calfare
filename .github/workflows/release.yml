@@ -1,0 +1,64 @@
+name: Release
+
+# Publishes a GitHub release with a zipped Calflare.app when a version tag is pushed:
+#   git tag v1.1 && git push origin v1.1
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches the app version
+        run: |
+          version="$(plutil -extract CFBundleShortVersionString raw -o - App/Info.plist)"
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match CFBundleShortVersionString ${version} in App/Info.plist." >&2
+            exit 1
+          fi
+
+      - name: Test and build the app
+        run: make check
+
+      - name: Package
+        run: |
+          archive="Calflare-${GITHUB_REF_NAME}.zip"
+          ditto -c -k --sequesterRsrc --keepParent build/Calflare.app "$archive"
+          shasum -a 256 "$archive" > "$archive.sha256"
+          echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'EOF'
+          ## Install
+
+          1. Unzip and move `Calflare.app` to `~/Applications`.
+          2. This build is ad-hoc signed, not notarized, so macOS quarantines the download.
+             Remove the flag, then open the app:
+
+             ```sh
+             xattr -dr com.apple.quarantine ~/Applications/Calflare.app
+             open ~/Applications/Calflare.app
+             ```
+          3. Allow Calendar access when prompted, then click the menu bar icon > Calendars….
+
+          Calflare does not start at login by itself when installed this way. To keep it
+          running automatically, build from source and run `make install` (see the README).
+
+          Verify the download with the attached `.sha256` file: `shasum -a 256 -c Calflare-*.zip.sha256`.
+          EOF
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" "$ARCHIVE.sha256" \
+            --title "Calflare ${GITHUB_REF_NAME#v}" \
+            --generate-notes \
+            --notes-file release-notes.md
