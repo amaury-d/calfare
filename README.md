@@ -14,6 +14,10 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/amaury-d/calfare" alt="MIT license"></a>
 </p>
 
+<p align="center">
+  <img src="docs/demo.gif" width="640" alt="Calflare's full-screen alert counting down to a meeting, with a Join Teams button">
+</p>
+
 Calflare is a local macOS meeting reminder. A minute before an event starts it
 takes over every screen with an animated full-screen alert, so a meeting cannot
 quietly slip past you. It reads calendars through Apple's Calendar framework
