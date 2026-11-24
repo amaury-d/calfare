@@ -6,3 +6,17 @@
 "button.close" = "Close";
 "preview.title" = "Calflare preview";
 "preview.details" = "This is a synthetic preview event.";
+"menu.calendars" = "Calendars…";
+"menu.testAlert" = "Test an alert";
+"menu.quit" = "Quit Calflare";
+"window.calendars.title" = "Calendars";
+"calendars.all" = "All calendars";
+"calendars.allHint" = "Includes calendars added later.";
+"calendars.none" = "No calendar selected. Calflare shows no alerts.";
+"calendars.unavailable" = "Some saved calendars are unavailable right now and were kept.";
+"calendars.empty" = "No calendar is available.";
+"access.denied" = "Calflare needs Calendar access.";
+"access.deniedDetail" = "Enable Calflare under Privacy & Security > Calendars, then reopen this window.";
+"access.openSettings" = "Open System Settings";
+"access.request" = "Allow access";
+"error.saveFailed" = "Cannot save the selection: %@";

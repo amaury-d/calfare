@@ -24,12 +24,27 @@ a service. The app includes its overlay executable and English/French
 resources, so it can be moved independently of the checkout.
 
 `make install` builds the app, installs it at `~/Applications/Calflare.app`,
-and loads a per-user LaunchAgent that checks every 20 seconds. To choose a
+and loads a per-user LaunchAgent that keeps Calflare running in the menu bar,
+where it checks your calendars every 20 seconds. To choose a
 different application directory, use `make install INSTALL_DIR="/path/to/apps"`;
 use the same directory for uninstallation. On first use, allow Calflare to
-access Calendars in System Settings > Privacy & Security > Calendars. Ad-hoc
-signing is intended for local source builds and does not guarantee that macOS
-will retain permission after a rebuild.
+access Calendars when prompted, or in System Settings > Privacy & Security >
+Calendars. Ad-hoc signing is intended for local source builds and does not guarantee that macOS
+will retain permission after a rebuild. To upgrade from an older version,
+run `make install` again (not only `make`): it replaces the old LaunchAgent,
+which polled every 20 seconds instead of keeping Calflare running.
+
+## Menu bar
+
+Calflare shows a "C" icon in the menu bar. Its menu has three entries:
+
+- **Calendars…** opens the window where you choose which calendars trigger
+  alerts.
+- **Test an alert** shows the same synthetic full-screen alert as `make preview`.
+- **Quit Calflare** stops Calflare and its alerts. It is not relaunched
+  automatically; run `make restart` (or `launchctl kickstart
+  gui/$(id -u)/com.calflare.agent`) or log out and back in to start it again.
+  An alert already on screen stays open.
 
 ## Preview an alert
 
@@ -44,6 +59,26 @@ make preview
 
 By default, Calflare uses all calendars macOS makes available. To limit alerts
 to specific calendars:
+
+1. Click the Calflare icon in the menu bar and choose **Calendars…**.
+2. Tick the calendars you want, listed under the account they belong to. Each
+   change is saved immediately and applies within about 20 seconds.
+
+**All calendars** includes calendars you add later. Unticking one calendar
+while it is on freezes the selection to the calendars that exist right now.
+Turning **All calendars** off, or unticking every calendar, disables alerts
+entirely. A calendar saved in the selection but temporarily unavailable, for
+example because its account is offline, is kept rather than dropped. If the
+window says Calflare needs Calendar access, use its button to allow it or to
+open System Settings.
+
+### Edit the configuration by hand (fallback)
+
+The window reads and writes the file described here, so both approaches stay
+in sync. The window refuses to save while `config.json` is invalid.
+
+To limit alerts to specific calendars by editing the configuration file
+yourself:
 
 1. **List your calendars.** In a terminal, run:
 
@@ -127,7 +162,10 @@ or run `make logs` for errors.
 
 ## Behavior and limitations
 
-- Checks every 20 seconds and alerts for eligible timed events 45–85 seconds
+- Runs as a menu bar app and checks every 20 seconds. `CalflareAgent --once`
+  performs a single check and exits, for diagnostics. While running, it prints
+  `eventkit-alerts=N` to `stdout.log` only when an alert was shown.
+- Alerts for eligible timed events 45–85 seconds
   away. This is an approximate one-minute warning, not a precise alarm.
 - Skips all-day, cancelled, and declined events, including titles prefixed
   with common English or French cancellation/decline markers.
@@ -136,7 +174,8 @@ or run `make logs` for errors.
   are not detected. Alerts dismiss automatically after 15 minutes.
 - Stores occurrence-based deduplication keys for seven days in
   `~/Library/Application Support/Calflare/alerted-events.txt`.
-- A sleeping Mac may miss an event: Calflare does not wake the computer.
+- A sleeping Mac may miss an event: Calflare does not wake the computer. It
+  checks again as soon as the Mac wakes, so an alert may be slightly late.
 
 ## Privacy and troubleshooting
 
@@ -145,7 +184,8 @@ read locally through EventKit. Calendar identifiers and deduplication state
 are stored locally. The meeting destination is opened only when the user
 activates the Teams button in an alert.
 
-If calendars are missing, confirm the account exposes calendars to macOS
+The Calendars window shows when Calendar access is missing and links to the
+right System Settings pane. If calendars are missing, confirm the account exposes calendars to macOS
 Calendar and that Calflare has Calendar permission. The account need not be
 Exchange specifically. If listing calendars in a terminal fails, check that
 the terminal app also has Calendar access. See

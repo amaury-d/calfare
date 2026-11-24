@@ -6,3 +6,17 @@
 "button.close" = "Fermer";
 "preview.title" = "Aperçu de Calflare";
 "preview.details" = "Ceci est un événement de démonstration synthétique.";
+"menu.calendars" = "Calendriers…";
+"menu.testAlert" = "Tester une alerte";
+"menu.quit" = "Quitter Calflare";
+"window.calendars.title" = "Calendriers";
+"calendars.all" = "Tous les calendriers";
+"calendars.allHint" = "Inclut les calendriers ajoutés plus tard.";
+"calendars.none" = "Aucun calendrier sélectionné. Calflare n’affiche aucune alerte.";
+"calendars.unavailable" = "Certains calendriers enregistrés sont indisponibles et ont été conservés.";
+"calendars.empty" = "Aucun calendrier disponible.";
+"access.denied" = "Calflare a besoin d’accéder à Calendrier.";
+"access.deniedDetail" = "Activez Calflare dans Confidentialité et sécurité > Calendriers, puis réouvrez cette fenêtre.";
+"access.openSettings" = "Ouvrir Réglages système";
+"access.request" = "Autoriser l’accès";
+"error.saveFailed" = "Impossible d’enregistrer la sélection : %@";

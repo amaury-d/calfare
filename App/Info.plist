@@ -6,6 +6,10 @@
   <string>en</string>
   <key>CFBundleExecutable</key>
   <string>CalflareAgent</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
+  <key>CFBundleIconName</key>
+  <string>AppIcon</string>
   <key>CFBundleIdentifier</key>
   <string>com.calflare.agent</string>
   <key>CFBundleInfoDictionaryVersion</key>
@@ -15,9 +19,9 @@
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.0</string>
+  <string>1.1</string>
   <key>CFBundleVersion</key>
-  <string>1</string>
+  <string>2</string>
   <key>CFBundleLocalizations</key>
   <array>
     <string>en</string>

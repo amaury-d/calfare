@@ -5,7 +5,7 @@ INSTALL_DIR ?= $(HOME)/Applications
 APP := build/Calflare.app
 LABEL := com.calflare.agent
 
-.PHONY: app install uninstall preview logs test check clean
+.PHONY: app install uninstall preview logs restart icon test check clean
 
 app:
 	@set -eu; \
@@ -92,6 +92,14 @@ uninstall:
 preview: app
 	@"$(APP)/Contents/MacOS/CalflareAgent" --test
 
+restart:
+	@launchctl kickstart -k "gui/$$(id -u)/$(LABEL)"
+
+icon:
+	@mkdir -p build
+	@swiftc -O scripts/make-icon.swift -o build/make-icon
+	@build/make-icon "$(CURDIR)"
+
 logs:
 	@tail -F "$(HOME)/Library/Logs/Calflare/stdout.log" "$(HOME)/Library/Logs/Calflare/stderr.log"
 
@@ -100,6 +108,14 @@ test:
 
 check: test app
 	plutil -lint App/Info.plist App/$(LABEL).plist App/Resources/en.lproj/*.strings App/Resources/fr.lproj/*.strings
+	! plutil -extract StartInterval raw -o - App/$(LABEL).plist >/dev/null 2>&1
+	test "$$(plutil -extract KeepAlive.SuccessfulExit raw -o - App/$(LABEL).plist)" = false
+	test "$$(plutil -extract LimitLoadToSessionType raw -o - App/$(LABEL).plist)" = Aqua
+	test "$$(plutil -extract CFBundleIconFile raw -o - App/Info.plist)" = AppIcon
+	test -s App/Resources/AppIcon.icns
+	test -s App/Resources/StatusIcon.pdf
+	diff <(grep -o '^"[^"]*"' App/Resources/en.lproj/Localizable.strings | sort) \
+	     <(grep -o '^"[^"]*"' App/Resources/fr.lproj/Localizable.strings | sort)
 	codesign --verify --deep --strict --verbose=2 "$(APP)"
 	test -x "$(APP)/Contents/MacOS/CalflareAgent"
 	test -x "$(APP)/Contents/MacOS/CalflareOverlay"

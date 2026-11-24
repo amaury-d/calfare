@@ -9,6 +9,7 @@ public enum CalendarConfigurationError: Error, Equatable, LocalizedError {
     case unreadable(String)
     case invalidJSON
     case invalidIdentifiers
+    case unwritable(String)
 
     public var errorDescription: String? {
         switch self {
@@ -16,6 +17,7 @@ public enum CalendarConfigurationError: Error, Equatable, LocalizedError {
         case .invalidJSON: return "config.json must contain a JSON object."
         case .invalidIdentifiers:
             return "calendarIdentifiers must be an array of non-empty strings (an empty array selects no calendars)."
+        case .unwritable(let reason): return "Cannot write calendar configuration: \(reason)"
         }
     }
 }
@@ -48,15 +50,152 @@ public enum CalendarConfiguration {
         }
         return .identifiers(Set(identifiers.compactMap { $0 as? String }))
     }
+
+    /// Merges `selection` into the bytes of an existing configuration and returns the bytes to
+    /// write. `existing` is nil when no configuration file is present.
+    ///
+    /// Unknown top-level keys are preserved. `.all` removes `calendarIdentifiers` entirely,
+    /// because a missing key means "every calendar"; `retained` is ignored in that case.
+    /// Identifiers in `retained` are kept so that a calendar belonging to a temporarily
+    /// unavailable account is not silently dropped.
+    public static func configurationData(
+        for selection: CalendarSelection,
+        existing: Data?,
+        retainingUnavailable retained: Set<String> = []
+    ) throws -> Data {
+        var object: [String: Any] = [:]
+        if let existing, !existing.isEmpty {
+            // Refuse to clobber a file we cannot understand: the user may be editing it.
+            guard let value = try? JSONSerialization.jsonObject(with: existing),
+                  let existingObject = value as? [String: Any] else {
+                throw CalendarConfigurationError.invalidJSON
+            }
+            object = existingObject
+        }
+        switch selection {
+        case .all:
+            object.removeValue(forKey: "calendarIdentifiers")
+        case .identifiers(let identifiers):
+            object["calendarIdentifiers"] = identifiers.union(retained).sorted()
+        }
+        let data: Data
+        do {
+            data = try JSONSerialization.data(
+                withJSONObject: object, options: [.prettyPrinted, .sortedKeys]
+            )
+        } catch {
+            throw CalendarConfigurationError.unwritable(error.localizedDescription)
+        }
+        return data + Data("\n".utf8)
+    }
+
+    /// Reads the current configuration, merges `selection` into it, and replaces the file
+    /// atomically so a concurrent reader never observes a partial write.
+    public static func save(
+        _ selection: CalendarSelection,
+        to url: URL,
+        retainingUnavailable retained: Set<String> = []
+    ) throws {
+        var existing: Data?
+        if FileManager.default.fileExists(atPath: url.path) {
+            do {
+                existing = try Data(contentsOf: url)
+            } catch {
+                throw CalendarConfigurationError.unreadable(error.localizedDescription)
+            }
+        }
+        let data = try configurationData(
+            for: selection, existing: existing, retainingUnavailable: retained
+        )
+        do {
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(), withIntermediateDirectories: true
+            )
+            try data.write(to: url, options: .atomic)
+        } catch {
+            throw CalendarConfigurationError.unwritable(error.localizedDescription)
+        }
+    }
 }
 
 public struct AvailableCalendar: Equatable {
     public let identifier: String
     public let title: String
+    public let sourceTitle: String
 
-    public init(identifier: String, title: String) {
+    public init(identifier: String, title: String, sourceTitle: String = "") {
         self.identifier = identifier
         self.title = title
+        self.sourceTitle = sourceTitle
+    }
+}
+
+public struct CalendarGroup: Equatable {
+    public let sourceTitle: String
+    public let calendars: [AvailableCalendar]
+
+    public init(sourceTitle: String, calendars: [AvailableCalendar]) {
+        self.sourceTitle = sourceTitle
+        self.calendars = calendars
+    }
+}
+
+/// Groups calendars by account for display, sorted by account then calendar title.
+public func groupCalendarsBySource(_ calendars: [AvailableCalendar]) -> [CalendarGroup] {
+    let order: (AvailableCalendar, AvailableCalendar) -> Bool = { left, right in
+        switch left.title.localizedStandardCompare(right.title) {
+        case .orderedAscending: return true
+        case .orderedDescending: return false
+        case .orderedSame: return left.identifier < right.identifier
+        }
+    }
+    return Dictionary(grouping: calendars, by: \.sourceTitle)
+        .map { CalendarGroup(sourceTitle: $0.key, calendars: $0.value.sorted(by: order)) }
+        .sorted { left, right in
+            switch left.sourceTitle.localizedStandardCompare(right.sourceTitle) {
+            case .orderedAscending: return true
+            case .orderedDescending: return false
+            case .orderedSame: return false
+            }
+        }
+}
+
+public enum CalendarToggle {
+    public static func isSelected(_ identifier: String, in selection: CalendarSelection) -> Bool {
+        switch selection {
+        case .all: return true
+        case .identifiers(let identifiers): return identifiers.contains(identifier)
+        }
+    }
+
+    /// True only for `.all`. An explicit list that happens to cover every available calendar
+    /// is not "all", because the two differ for calendars added later.
+    public static func isAllSelected(_ selection: CalendarSelection) -> Bool {
+        selection == .all
+    }
+
+    public static func setting(
+        _ isOn: Bool,
+        for identifier: String,
+        in selection: CalendarSelection,
+        available: [AvailableCalendar]
+    ) -> CalendarSelection {
+        switch selection {
+        case .all:
+            guard !isOn else { return .all }
+            // Materialize the implicit "all" into the calendars that exist right now.
+            return .identifiers(Set(available.map(\.identifier)).subtracting([identifier]))
+        case .identifiers(let identifiers):
+            return .identifiers(isOn ? identifiers.union([identifier])
+                                     : identifiers.subtracting([identifier]))
+        }
+    }
+
+    public static func settingAll(
+        _ isOn: Bool,
+        available: [AvailableCalendar] = []
+    ) -> CalendarSelection {
+        isOn ? .all : .identifiers([])
     }
 }
 

@@ -13,7 +13,11 @@ make check
 This runs the tests, builds an ad-hoc-signed app, and checks its property
 lists, localized resources, and signature without Calendar access or a GUI.
 `App/` contains the bundle metadata, translations, and LaunchAgent template.
-Run `make preview` for a synthetic full-screen alert. `make clean` removes
+The menu bar item and the Calendars window need a GUI session and Calendar
+access, so test them manually (`make install`). Run `make preview` for a
+synthetic full-screen alert, and `make icon` to regenerate the committed logo
+resources (`App/Resources/AppIcon.icns` and `StatusIcon.pdf`) after editing
+`scripts/make-icon.swift`. `make clean` removes
 the Swift build cache and `build/Calflare.app`, not other files in `build/`.
 
 Before a public release, confirm the copyright attribution in `LICENSE` and

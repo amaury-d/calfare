@@ -12,8 +12,15 @@
   <true/>
   <key>RunAtLoad</key>
   <true/>
-  <key>StartInterval</key>
-  <integer>20</integer>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>LimitLoadToSessionType</key>
+  <string>Aqua</string>
+  <key>ProcessType</key>
+  <string>Interactive</string>
   <key>StandardOutPath</key>
   <string>STDOUT_PATH</string>
   <key>StandardErrorPath</key>
