@@ -1,59 +1,117 @@
-# Calflare
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="">
+</p>
 
-Calflare is a local macOS meeting reminder. It checks calendars exposed to
-Apple's Calendar framework (EventKit) and shows a full-screen animated alert
-about a minute before an event. It does not connect to Outlook or Microsoft
-Graph; an Outlook account is usable only when its calendars are enabled and
-visible to macOS Calendar.
+<h1 align="center">Calflare</h1>
 
-## Requirements
+<h3 align="center">Never miss an appointment again!</h3>
 
-- macOS 14 or later
-- Xcode Command Line Tools with Swift 5.9 or later
-- Calendar accounts already configured in macOS, with Calendar access enabled
+<p align="center">
+  <a href="https://github.com/amaury-d/calfare/actions/workflows/ci.yml"><img src="https://github.com/amaury-d/calfare/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/amaury-d/calfare/releases/latest"><img src="https://img.shields.io/github/v/release/amaury-d/calfare" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-000000?logo=apple&logoColor=white" alt="macOS 14+">
+  <img src="https://img.shields.io/badge/Swift-5.9%2B-F05138?logo=swift&logoColor=white" alt="Swift 5.9+">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/amaury-d/calfare" alt="MIT license"></a>
+</p>
 
-## Build and install from source
+Calflare is a local macOS meeting reminder. A minute before an event starts it
+takes over every screen with an animated full-screen alert, so a meeting cannot
+quietly slip past you. It reads calendars through Apple's Calendar framework
+(EventKit) and never talks to Outlook or Microsoft Graph; an Outlook account
+works as long as its calendars are visible to macOS Calendar.
+
+## Features
+
+- **A full-screen alert** on every display, about a minute ahead, with a live
+  countdown. `Escape` dismisses it.
+- **One-click Teams join** when a Teams link is found in the event.
+- **Pick your calendars** from the menu bar, grouped by account. No UUIDs, no
+  text editor.
+- **Launch at login**, either from the window or through the installed
+  LaunchAgent.
+- **Entirely local.** No telemetry, no network calls, no Graph API. Event
+  details never leave your Mac.
+- **English and French**, following your macOS language.
+- **Quiet by design.** It skips all-day, cancelled and declined events, and
+  never alerts twice for the same occurrence.
+
+## Install
+
+Requires macOS 14 or later, with calendar accounts already set up in macOS.
+
+### Download
+
+Grab the latest `Calflare-*.zip` from the
+[releases page](https://github.com/amaury-d/calfare/releases/latest), unzip it,
+and move `Calflare.app` to `~/Applications`. The build is ad-hoc signed and not
+notarized, so macOS quarantines the download:
+
+```sh
+xattr -dr com.apple.quarantine ~/Applications/Calflare.app
+open ~/Applications/Calflare.app
+```
+
+Then enable **Launch at login** in the window so Calflare comes back after a
+restart.
+
+### Build from source
+
+Needs Xcode Command Line Tools with Swift 5.9 or later.
 
 ```sh
 make install
 ```
 
+This builds the app, installs it at `~/Applications/Calflare.app`, and loads a
+per-user LaunchAgent that keeps Calflare running in the menu bar, where it
+checks your calendars every 20 seconds. To choose a different application
+directory, use `make install INSTALL_DIR="/path/to/apps"`; use the same
+directory for uninstallation. Allow Calflare to access Calendars when prompted,
+or in System Settings > Privacy & Security > Calendars.
+
 Use `make` or `make app` to build and ad-hoc sign a self-contained
 `build/Calflare.app` without accessing calendars, showing a window, or loading
-a service. The app includes its overlay executable and English/French
-resources, so it can be moved independently of the checkout.
-
-`make install` builds the app, installs it at `~/Applications/Calflare.app`,
-and loads a per-user LaunchAgent that keeps Calflare running in the menu bar,
-where it checks your calendars every 20 seconds. To choose a
-different application directory, use `make install INSTALL_DIR="/path/to/apps"`;
-use the same directory for uninstallation. On first use, allow Calflare to
-access Calendars when prompted, or in System Settings > Privacy & Security >
-Calendars. Ad-hoc signing is intended for local source builds and does not guarantee that macOS
-will retain permission after a rebuild. To upgrade from an older version,
-run `make install` again (not only `make`): it replaces the old LaunchAgent,
-which polled every 20 seconds instead of keeping Calflare running.
+a service. Ad-hoc signing is intended for local source builds and does not
+guarantee that macOS will retain permission after a rebuild. To upgrade, run
+`make install` again rather than only `make`: it replaces the LaunchAgent too.
 
 ## Menu bar
 
 Calflare shows a "C" icon in the menu bar. Its menu has three entries:
 
-- **Calendars…** opens the window where you choose which calendars trigger
-  alerts.
-- **Test an alert** shows the same synthetic full-screen alert as `make preview`.
+- **Calendars…** opens the Calflare window: which calendars trigger alerts, and
+  whether Calflare starts at login. Opening the app again (from the Finder or
+  `open`) shows the same window.
+- **Test an alert** shows a synthetic full-screen alert, the same as
+  `make preview` or `CalflareAgent --test`. It needs no Calendar access.
 - **Quit Calflare** stops Calflare and its alerts. It is not relaunched
   automatically; run `make restart` (or `launchctl kickstart
   gui/$(id -u)/com.calflare.agent`) or log out and back in to start it again.
   An alert already on screen stays open.
 
-## Preview an alert
+## Launch at login
 
-```sh
-make preview
-"$HOME/Applications/Calflare.app/Contents/MacOS/CalflareAgent" --test
-```
+The **Startup** section of the window has a **Launch at login** switch, which
+registers Calflare as a login item.
 
-`--test` uses synthetic event data and does not request Calendar access.
+Move `Calflare.app` into `~/Applications` **before** turning it on. macOS
+records where the app is, so enabling it while the app still sits in your
+Downloads folder, in a disk image, or in Gatekeeper's read-only translocation
+would register a path that no longer exists at the next login. Calflare refuses
+to register from those locations instead of failing silently later.
+
+When you installed with `make install`, the switch is already on and read-only:
+the LaunchAgent starts Calflare at login, and `make uninstall` removes it.
+Calflare never writes or deletes that file itself. If you switch Calflare off
+in System Settings > General > Login Items & Extensions, the window says so
+rather than claiming it still starts.
+
+Because source builds are ad-hoc signed, the app's code identity changes with
+every build. Calflare re-registers itself on launch when it detects a new
+version, so a stale login item does not stop it from starting.
+
+`CalflareAgent --login-item-status`, `--enable-login-item` and
+`--disable-login-item` do the same from a terminal.
 
 ## Choose which calendars trigger alerts
 
@@ -200,7 +258,8 @@ These files grow over time; they may be removed when no longer needed.
 make uninstall
 ```
 
-This stops and removes only Calflare's LaunchAgent and installed app.
+This stops and removes only Calflare's LaunchAgent, its login item, and the
+installed app.
 Configuration, deduplication state, and logs remain in your home directory.
 To remove those data files as well, do so explicitly after uninstalling:
 

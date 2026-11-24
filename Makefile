@@ -59,7 +59,8 @@ install: app
 	trap rollback EXIT; \
 	ditto "$(APP)" "$$stage/Calflare.app"; \
 	cp App/$(LABEL).plist "$$stage/agent.plist"; \
-	plutil -replace ProgramArguments.0 -string "$$app/Contents/MacOS/CalflareAgent" "$$stage/agent.plist"; \
+	plutil -replace ProgramArguments -json "[\"$$app/Contents/MacOS/CalflareAgent\"]" "$$stage/agent.plist"; \
+		! plutil -extract ProgramArguments.1 raw -o - "$$stage/agent.plist" >/dev/null 2>&1; \
 	plutil -replace StandardOutPath -string "$$logs/stdout.log" "$$stage/agent.plist"; \
 	plutil -replace StandardErrorPath -string "$$logs/stderr.log" "$$stage/agent.plist"; \
 	plutil -lint "$$stage/agent.plist"; \
@@ -86,6 +87,9 @@ uninstall:
 		echo "Refusing to remove an unrelated LaunchAgent: $$plist" >&2; exit 1; \
 	fi; \
 	if launchctl print "$$service" >/dev/null 2>&1; then launchctl bootout "$$service"; fi; \
+	if [ -x "$$app/Contents/MacOS/CalflareAgent" ]; then \
+		"$$app/Contents/MacOS/CalflareAgent" --disable-login-item || true; \
+	fi; \
 	rm -f "$$plist"; rm -rf "$$app"; \
 	echo "Removed Calflare. Configuration, state and logs were preserved."
 
@@ -114,6 +118,8 @@ check: test app
 	test "$$(plutil -extract CFBundleIconFile raw -o - App/Info.plist)" = AppIcon
 	test -s App/Resources/AppIcon.icns
 	test -s App/Resources/StatusIcon.pdf
+	test -s docs/icon.png
+	test "$$(plutil -extract ProgramArguments.0 raw -o - App/$(LABEL).plist)" = AGENT_PATH
 	diff <(grep -o '^"[^"]*"' App/Resources/en.lproj/Localizable.strings | sort) \
 	     <(grep -o '^"[^"]*"' App/Resources/fr.lproj/Localizable.strings | sort)
 	codesign --verify --deep --strict --verbose=2 "$(APP)"

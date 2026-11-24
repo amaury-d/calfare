@@ -151,7 +151,13 @@ do {
         exit(1)
     }
     writeStatusIcon(to: resources.appendingPathComponent("StatusIcon.pdf"))
-    print("Wrote \(icns.path) and StatusIcon.pdf")
+
+    // A PNG for the README: GitHub cannot render .icns.
+    let docs = root.appendingPathComponent("docs")
+    try FileManager.default.createDirectory(at: docs, withIntermediateDirectories: true)
+    try renderPNG(pixels: 512, to: docs.appendingPathComponent("icon.png"))
+
+    print("Wrote \(icns.path), StatusIcon.pdf and docs/icon.png")
 } catch {
     FileHandle.standardError.write(Data("make-icon: \(error)\n".utf8))
     exit(1)

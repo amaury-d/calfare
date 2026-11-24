@@ -13,7 +13,7 @@ jobs:
   release:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Check the tag matches the app version
         run: |
@@ -47,9 +47,15 @@ jobs:
              open ~/Applications/Calflare.app
              ```
           3. Allow Calendar access when prompted, then click the menu bar icon > Calendars….
+          4. Turn on **Launch at login** in the Startup section of that window, so Calflare
+             comes back after a restart. Do step 1 first: macOS records where the app is, and
+             Calflare refuses to register from your Downloads folder because that path will
+             not be there at the next login. macOS may ask you to approve Calflare in
+             System Settings > General > Login Items & Extensions; the window links there.
 
-          Calflare does not start at login by itself when installed this way. To keep it
-          running automatically, build from source and run `make install` (see the README).
+          After replacing `Calflare.app` with a newer release, open the window once. This
+          build is ad-hoc signed, so its identity changes with every version and Calflare
+          re-registers itself.
 
           Verify the download with the attached `.sha256` file: `shasum -a 256 -c Calflare-*.zip.sha256`.
           EOF

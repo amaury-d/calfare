@@ -16,8 +16,14 @@ lists, localized resources, and signature without Calendar access or a GUI.
 The menu bar item and the Calendars window need a GUI session and Calendar
 access, so test them manually (`make install`). Run `make preview` for a
 synthetic full-screen alert, and `make icon` to regenerate the committed logo
-resources (`App/Resources/AppIcon.icns` and `StatusIcon.pdf`) after editing
-`scripts/make-icon.swift`. `make clean` removes
+resources (`App/Resources/AppIcon.icns`, `StatusIcon.pdf` and `docs/icon.png`)
+after editing `scripts/make-icon.swift`. Regenerating rewrites the PDF even
+when the drawing is unchanged, so only commit it when the logo really changed.
+
+The launch-at-login states are testable from a terminal without clicking:
+`CalflareAgent --login-item-status` prints `managed-by-launch-agent`,
+`disabled`, `enabled`, `requires-approval` or `unavailable-*`, and
+`--enable-login-item` / `--disable-login-item` register and unregister. `make clean` removes
 the Swift build cache and `build/Calflare.app`, not other files in `build/`.
 
 Before a public release, confirm the copyright attribution in `LICENSE` and

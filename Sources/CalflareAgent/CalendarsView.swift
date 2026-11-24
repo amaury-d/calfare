@@ -9,6 +9,8 @@ final class CalendarsModel: ObservableObject {
     @Published private(set) var unavailable: Set<String> = []
     @Published private(set) var configurationError: String?
     @Published private(set) var saveError: String?
+    @Published private(set) var startup: LoginItem.State = .disabled
+    @Published private(set) var startupError: String?
 
     private let runtime: AgentRuntime
     private var available: [AvailableCalendar] = []
@@ -21,6 +23,7 @@ final class CalendarsModel: ObservableObject {
 
     /// config.json is the single source of truth: every refresh re-reads it.
     func reload() {
+        startup = LoginItem.state()
         access = CalendarAccess.state()
         guard access == .granted else {
             groups = []
@@ -52,6 +55,35 @@ final class CalendarsModel: ObservableObject {
     func setAll(_ isOn: Bool) {
         // Turning "all" off is an explicit "nothing", so nothing is retained either.
         apply(CalendarToggle.settingAll(isOn, available: available), retaining: [])
+    }
+
+    var launchesAtLogin: Bool {
+        switch startup {
+        case .enabled, .requiresApproval: return true
+        case .managedByLaunchAgent(let enabled): return enabled
+        case .disabled, .unavailable: return false
+        }
+    }
+
+    /// launchd owns startup, or the location makes registration pointless.
+    var startupIsEditable: Bool {
+        switch startup {
+        case .managedByLaunchAgent, .unavailable: return false
+        case .enabled, .requiresApproval, .disabled: return true
+        }
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        startupError = nil
+        do {
+            try LoginItem.setEnabled(enabled)
+        } catch {
+            startupError = String(
+                format: NSLocalizedString("error.loginItemFailed", comment: ""),
+                error.localizedDescription
+            )
+        }
+        reload()
     }
 
     func requestAccess() {
@@ -88,6 +120,8 @@ struct CalendarsView: View {
             } else {
                 accessPrompt
             }
+            Divider()
+            startup
             HStack {
                 Spacer()
                 Button(NSLocalizedString("button.close", comment: ""), action: close)
@@ -95,7 +129,61 @@ struct CalendarsView: View {
             }
         }
         .padding(20)
-        .frame(width: 380, height: 460)
+        .frame(width: 380, height: 530)
+    }
+
+    private var startup: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(NSLocalizedString("startup.section", comment: ""))
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            Toggle(
+                NSLocalizedString("startup.launchAtLogin", comment: ""),
+                isOn: Binding(
+                    get: { model.launchesAtLogin },
+                    set: { model.setLaunchAtLogin($0) }
+                )
+            )
+            .disabled(!model.startupIsEditable)
+            startupCaption.padding(.leading, 20)
+        }
+    }
+
+    @ViewBuilder
+    private var startupCaption: some View {
+        if let message = model.startupError {
+            Text(message).font(.caption).foregroundStyle(.red)
+        } else {
+            switch model.startup {
+            case .managedByLaunchAgent(true):
+                Text(NSLocalizedString("startup.managedByLaunchAgent", comment: ""))
+                    .font(.caption).foregroundStyle(.secondary)
+            case .managedByLaunchAgent(false):
+                settingsCaption("startup.launchAgentDisabled", color: .orange)
+            case .requiresApproval:
+                settingsCaption("startup.requiresApproval", color: .orange)
+            case .unavailable(.volatileLocation):
+                Text(NSLocalizedString("startup.volatileLocation", comment: ""))
+                    .font(.caption).foregroundStyle(.red)
+            case .unavailable(.signatureRejected):
+                Text(NSLocalizedString("startup.signatureRejected", comment: ""))
+                    .font(.caption).foregroundStyle(.red)
+            case .unavailable(.failed(let reason)):
+                Text(reason).font(.caption).foregroundStyle(.red)
+            case .enabled, .disabled:
+                EmptyView()
+            }
+        }
+    }
+
+    private func settingsCaption(_ key: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(NSLocalizedString(key, comment: "")).font(.caption).foregroundStyle(color)
+            Button(NSLocalizedString("startup.openLoginItems", comment: ""),
+                   action: LoginItem.openSystemSettings)
+                .controlSize(.small)
+        }
     }
 
     private var allBinding: Binding<Bool> {
@@ -107,6 +195,10 @@ struct CalendarsView: View {
 
     private var calendars: some View {
         VStack(alignment: .leading, spacing: 10) {
+            Text(NSLocalizedString("calendars.section", comment: ""))
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 2) {
                 Toggle(NSLocalizedString("calendars.all", comment: ""), isOn: allBinding)
                     .fontWeight(.semibold)

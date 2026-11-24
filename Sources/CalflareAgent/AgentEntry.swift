@@ -5,7 +5,10 @@ struct CalflareAgentEntry {
     @MainActor
     static func main() {
         let arguments = Array(CommandLine.arguments.dropFirst())
-        let oneShot: Set<String> = ["--test", "--list", "--list-calendars", "--once"]
+        let oneShot: Set<String> = [
+            "--test", "--list", "--list-calendars", "--once",
+            "--enable-login-item", "--disable-login-item", "--login-item-status"
+        ]
         if arguments.contains(where: oneShot.contains) {
             AgentCLI.run(arguments)  // never returns
         }

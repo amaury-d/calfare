@@ -21,12 +21,12 @@ final class CalendarsWindowController: NSObject, NSWindowDelegate {
         model.reload()
         if window == nil {
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 380, height: 460),
+                contentRect: NSRect(x: 0, y: 0, width: 380, height: 530),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
                 defer: false
             )
-            window.title = NSLocalizedString("window.calendars.title", comment: "")
+            window.title = NSLocalizedString("window.title", comment: "")
             window.isReleasedWhenClosed = false
             window.delegate = self
             window.contentView = NSHostingView(

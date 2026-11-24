@@ -15,6 +15,25 @@ enum AgentCLI {
             }
         }
 
+        // --disable-login-item is also used by `make uninstall`, so no orphaned entry is
+        // left behind in Login Items.
+        if let enable = arguments.contains("--enable-login-item") ? true
+            : arguments.contains("--disable-login-item") ? false : nil {
+            do {
+                try LoginItem.setEnabled(enable)
+                print("login-item=\(LoginItem.name(of: LoginItem.state()))")
+                exit(0)
+            } catch {
+                log("Cannot change the login item: \(error.localizedDescription)")
+                exit(1)
+            }
+        }
+
+        if arguments.contains("--login-item-status") {
+            print("login-item=\(LoginItem.name(of: LoginItem.state()))")
+            exit(0)
+        }
+
         let runtime = AgentRuntime()
         let listing = arguments.contains("--list-calendars") || arguments.contains("--list")
         guard CalendarAccess.requestBlocking(runtime.store) else {

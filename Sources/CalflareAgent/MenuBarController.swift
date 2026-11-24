@@ -48,6 +48,7 @@ final class MenuBarController: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         installStatusItem()
+        LoginItem.refreshRegistrationIfNeeded()
 
         // The status item exists first so the menu is reachable while permission is pending.
         if CalendarAccess.state() == .notDetermined {
@@ -69,6 +70,13 @@ final class MenuBarController: NSObject, NSApplicationDelegate {
             self, selector: #selector(didWake),
             name: NSWorkspace.didWakeNotification, object: nil
         )
+    }
+
+    /// Opening the app while it already runs (Finder, `open`) shows its window instead of
+    /// doing nothing, which is what a menu bar app is expected to do.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        openCalendars()
+        return true
     }
 
     func applicationWillTerminate(_ notification: Notification) {

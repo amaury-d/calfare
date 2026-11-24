@@ -9,7 +9,6 @@
 "menu.calendars" = "Calendars…";
 "menu.testAlert" = "Test an alert";
 "menu.quit" = "Quit Calflare";
-"window.calendars.title" = "Calendars";
 "calendars.all" = "All calendars";
 "calendars.allHint" = "Includes calendars added later.";
 "calendars.none" = "No calendar selected. Calflare shows no alerts.";
@@ -20,3 +19,14 @@
 "access.openSettings" = "Open System Settings";
 "access.request" = "Allow access";
 "error.saveFailed" = "Cannot save the selection: %@";
+"window.title" = "Calflare";
+"calendars.section" = "Calendars";
+"startup.section" = "Startup";
+"startup.launchAtLogin" = "Launch at login";
+"startup.managedByLaunchAgent" = "Startup is managed by the LaunchAgent that make install loaded.";
+"startup.requiresApproval" = "macOS needs your approval before Calflare can start at login.";
+"startup.openLoginItems" = "Open Login Items";
+"error.loginItemFailed" = "Cannot change the login item: %@";
+"startup.launchAgentDisabled" = "Calflare is set up to start at login, but it is switched off in System Settings.";
+"startup.volatileLocation" = "Move Calflare.app to your Applications folder first: macOS records where the app is, and this location will not exist at the next login.";
+"startup.signatureRejected" = "This build's signature is not accepted for login items. Install from source with make install instead.";

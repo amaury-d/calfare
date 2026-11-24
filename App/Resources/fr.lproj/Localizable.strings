@@ -9,7 +9,6 @@
 "menu.calendars" = "Calendriers…";
 "menu.testAlert" = "Tester une alerte";
 "menu.quit" = "Quitter Calflare";
-"window.calendars.title" = "Calendriers";
 "calendars.all" = "Tous les calendriers";
 "calendars.allHint" = "Inclut les calendriers ajoutés plus tard.";
 "calendars.none" = "Aucun calendrier sélectionné. Calflare n’affiche aucune alerte.";
@@ -20,3 +19,14 @@
 "access.openSettings" = "Ouvrir Réglages système";
 "access.request" = "Autoriser l’accès";
 "error.saveFailed" = "Impossible d’enregistrer la sélection : %@";
+"window.title" = "Calflare";
+"calendars.section" = "Calendriers";
+"startup.section" = "Démarrage";
+"startup.launchAtLogin" = "Lancer au démarrage";
+"startup.managedByLaunchAgent" = "Le démarrage est géré par le LaunchAgent chargé par make install.";
+"startup.requiresApproval" = "macOS demande votre accord avant que Calflare puisse se lancer au démarrage.";
+"startup.openLoginItems" = "Ouvrir Ouverture et extensions";
+"error.loginItemFailed" = "Impossible de modifier l’élément de connexion : %@";
+"startup.launchAgentDisabled" = "Calflare est configuré pour se lancer au démarrage, mais il est désactivé dans Réglages Système.";
+"startup.volatileLocation" = "Déplacez d’abord Calflare.app dans votre dossier Applications : macOS enregistre l’emplacement de l’app, et celui-ci n’existera plus à la prochaine ouverture de session.";
+"startup.signatureRejected" = "La signature de cette version n’est pas acceptée pour les éléments de connexion. Installez depuis les sources avec make install.";
